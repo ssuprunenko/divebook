@@ -1,8 +1,45 @@
+# == Schema Information
+#
+# Table name: users
+#
+#  id                     :integer          not null, primary key
+#  name                   :string
+#  email                  :string           default(""), not null
+#  created_at             :datetime
+#  updated_at             :datetime
+#  encrypted_password     :string           default(""), not null
+#  reset_password_token   :string
+#  reset_password_sent_at :datetime
+#  remember_created_at    :datetime
+#  sign_in_count          :integer          default("0")
+#  current_sign_in_at     :datetime
+#  last_sign_in_at        :datetime
+#  current_sign_in_ip     :string
+#  last_sign_in_ip        :string
+#  country                :string
+#  provider               :string
+#  uid                    :string
+#  confirmation_token     :string
+#  confirmed_at           :datetime
+#  confirmation_sent_at   :datetime
+#  unconfirmed_email      :string
+#  authentication_token   :string
+#
 class User < ActiveRecord::Base
-  # Include default devise modules. Others available are:
-  # :token_authenticatable, :lockable, :timeoutable
-  devise :database_authenticatable, :registerable, :omniauthable,
-         :recoverable, :rememberable, :trackable, :validatable, :confirmable
+  has_many :dives, class_name: 'Dive'
+  has_many :divesites, through: :dives
+  has_many :images, through: :dives
+
+  before_save :ensure_authentication_token
+
+  devise :database_authenticatable,
+         :registerable,
+         :omniauthable,
+         :recoverable,
+         :rememberable,
+         :trackable,
+         :validatable,
+         :confirmable
 
   def to_s
   	name ? name : email
@@ -24,4 +61,18 @@ class User < ActiveRecord::Base
     user
   end
 
+  private
+
+  def ensure_authentication_token
+    if authentication_token.blank?
+      self.authentication_token = generate_authentication_token
+    end
+  end
+
+  def generate_authentication_token
+    loop do
+      token = Devise.friendly_token
+      break token unless User.where(authentication_token: token).first
+    end
+  end
 end

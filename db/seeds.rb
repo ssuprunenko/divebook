@@ -1,7 +1,24 @@
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
-#
-# Examples:
-#
-#   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
-#   Mayor.create(name: 'Emanuel', city: cities.first)
+count = 0
+15.times do
+  User.create(
+    name: Faker::Name.name,
+    email: "user#{count}@example.com",
+    password: '12345678',
+    country: Faker::Address.country)
+
+  count += 1
+end
+
+15.times do
+  address = "#{Faker::Address.city}, #{Faker::Address.country}"
+  Divesite.create(
+    name: Faker::Company.name,
+    address: address)
+end
+
+20.times do
+  Dive.create(
+    user_id: rand(1...15),
+    divesite_id: rand(1...15),
+    date: Faker::Date.between(5.month.ago, Date.today))
+end
